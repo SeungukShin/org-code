@@ -1,0 +1,11 @@
+# Change Log
+
+All notable changes to the "org-code" extension will be documented in this file.
+
+Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+
+## [Unreleased]
+### Added
+- Add language keyword.
+- Add indent feature.
+- Add folding feature.

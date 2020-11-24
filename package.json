@@ -1,0 +1,126 @@
+{
+	"name": "org-code",
+	"displayName": "org-code",
+	"description": "Org Extension for Code",
+	"icon": "emacs.png",
+	"version": "0.0.1",
+	"publisher": "SeungukShin",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/SeungukShin/org-code"
+	},
+	"engines": {
+		"vscode": "^1.44.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onLanguage:org"
+	],
+	"main": "./out/extension.js",
+	"contributes": {
+		"languages": [
+			{
+				"id": "org",
+				"extensions": [
+					".org"
+				],
+				"aliases": [
+					"Org"
+				]
+			}
+		],
+		"grammars": [
+			{
+				"language": "org",
+				"scopeName": "source.org",
+				"path": "./syntaxes/org.tmLanguage.json"
+			}
+		],
+		"commands": [
+			{
+				"command": "extension.emacs-code.find.file",
+				"title": "Emacs Code: Find File"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "extension.emacs-code.find.file",
+				"key": "ctrl+x ctrl+f"
+			}
+		],
+		"configuration": [
+			{
+				"title": "Org for Code",
+				"properties": {
+					"orgCode.logLevel": {
+						"type": "string",
+						"default": "E",
+						"enum": [
+							"E",
+							"W",
+							"I"
+						],
+						"enumDescriptions": [
+							"Error",
+							"Warning",
+							"Information"
+						]
+					},
+					"orgCode.maxBuffer": {
+						"type": "number",
+						"default": 10,
+						"description": "Max. buffer size for output from cscope in MB."
+					},
+					"orgCode.headLevel": {
+						"type": "number",
+						"default": 6,
+						"description": "The head depth to support indent"
+					},
+					"orgCode.updateDelay": {
+						"type": "number",
+						"default": 10,
+						"description": "The delay time in ms to update decorations"
+					},
+					"orgCode.indent": {
+						"type": "boolean",
+						"default": true,
+						"description": "Indent head and body"
+					},
+					"orgCode.fold": {
+						"type": "boolean",
+						"default": true,
+						"description": "Folding based on head"
+					},
+					"orgCode.foldOnStart": {
+						"type": "boolean",
+						"default": true,
+						"description": "Fold all on start"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"lint": "eslint src --ext ts",
+		"watch": "tsc -watch -p ./",
+		"pretest": "npm run compile && npm run lint",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.44.0",
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^7.0.2",
+		"@types/node": "^13.11.0",
+		"eslint": "^6.8.0",
+		"@typescript-eslint/parser": "^2.26.0",
+		"@typescript-eslint/eslint-plugin": "^2.26.0",
+		"glob": "^7.1.6",
+		"mocha": "^7.1.1",
+		"typescript": "^3.8.3",
+		"vscode-test": "^1.3.0"
+	}
+}
