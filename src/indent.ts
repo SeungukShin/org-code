@@ -4,17 +4,17 @@ import { Config } from './config';
 export class Indent implements vscode.Disposable {
 	private config: Config;
 	private decoTimer: NodeJS.Timer | undefined;
-	private level: number;
+	private static level: number;
 	private static headType: vscode.TextEditorDecorationType[] = [];
 	private static bodyType: vscode.TextEditorDecorationType[] = [];
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
-		this.level = this.config.get('headLevel');
+		Indent.level = this.config.get('headLevel');
 
 		// Decoration Type
 		let i;
-		for (i = 0; i < this.level; i++) {
+		for (i = 0; i < Indent.level; i++) {
 			const headIndent = '*'.repeat(i);
 			Indent.headType.push(vscode.window.createTextEditorDecorationType({
 				'light': {
@@ -58,13 +58,13 @@ export class Indent implements vscode.Disposable {
 		let i;
 		const head: vscode.Range[][] = [];
 		const body: vscode.Range[][] = [];
-		for (i = 0; i < this.level; i++) {
+		for (i = 0; i < Indent.level; i++) {
 			head[i] = [];
 			body[i] = [];
 		}
 		let preLevel = -1;
 		let preLine = -1;
-		const pattern = '\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$';
+		const pattern = '\\n[*]{1,' + Indent.level.toString() + '}\\s+|[\\s\\S]$';
 		const regex = new RegExp(pattern, 'g');
 		let match;
 		while (match = regex.exec(text)) {
@@ -82,7 +82,7 @@ export class Indent implements vscode.Disposable {
 				head[level - 1].push(new vscode.Range(pos.line + 1, 0, pos.line + 1, level - 1));
 				// body
 				if (preLevel >= 0 && preLine >= 0 && pos.line > preLine) {
-					for (i = preLine + 1; i < pos.line; i++) {
+					for (i = preLine + 1; i <= pos.line; i++) {
 						body[preLevel - 1].push(new vscode.Range(i, 0, i, 0));
 					}
 				}
@@ -90,7 +90,7 @@ export class Indent implements vscode.Disposable {
 				preLine = pos.line + 1;
 			}
 		}
-		for (i = 0; i < this.level; i++) {
+		for (i = 0; i < Indent.level; i++) {
 			editor.setDecorations(Indent.headType[i], head[i]);
 			editor.setDecorations(Indent.bodyType[i], body[i]);
 		}
