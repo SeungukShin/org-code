@@ -54,7 +54,7 @@
 			{
 				"title": "Org for Code",
 				"properties": {
-					"orgCode.logLevel": {
+					"org-code.logLevel": {
 						"type": "string",
 						"default": "E",
 						"enum": [
@@ -68,32 +68,32 @@
 							"Information"
 						]
 					},
-					"orgCode.maxBuffer": {
+					"org-code.maxBuffer": {
 						"type": "number",
 						"default": 10,
 						"description": "Max. buffer size for output from cscope in MB."
 					},
-					"orgCode.headLevel": {
+					"org-code.headLevel": {
 						"type": "number",
 						"default": 6,
 						"description": "The head depth to support indent"
 					},
-					"orgCode.updateDelay": {
+					"org-code.updateDelay": {
 						"type": "number",
 						"default": 10,
 						"description": "The delay time in ms to update decorations"
 					},
-					"orgCode.indent": {
+					"org-code.indent": {
 						"type": "boolean",
 						"default": true,
 						"description": "Indent head and body"
 					},
-					"orgCode.fold": {
+					"org-code.fold": {
 						"type": "boolean",
 						"default": true,
 						"description": "Folding based on head"
 					},
-					"orgCode.foldOnStart": {
+					"org-code.foldOnStart": {
 						"type": "boolean",
 						"default": true,
 						"description": "Fold all on start"
