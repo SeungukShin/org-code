@@ -1,0 +1,155 @@
+{
+	"name": "org",
+	"scopeName": "source.org",
+	"pattern": [
+		{
+			"comment": "org metadata",
+			"name": "keyword.control",
+			"match": "^#+\\S+:"
+		},
+		{
+			"comment": "org level 1",
+			"name": "entity.other.inherited-class",
+			"begin": "^[*]{1}\\s+",
+			"end": "$",
+			"pattern": [
+				{ "include": "#header" }
+			]
+		},
+		{
+			"comment": "org level 2",
+			"name": "entity.other.attribute-name",
+			"begin": "^[*]{2}\\s+",
+			"end": "$",
+			"pattern": [
+				{ "include": "#header" }
+			]
+		},
+		{
+			"comment": "org level 3",
+			"name": "entity.name.tag",
+			"begin": "^[*]{3}\\s+",
+			"end": "$",
+			"pattern": [
+				{ "include": "#header" }
+			]
+		},
+		{
+			"comment": "org level 4",
+			"name": "entity.name.function",
+			"begin": "^[*]{4}\\s+",
+			"end": "$",
+			"pattern": [
+				{ "include": "#header" }
+			]
+		},
+		{
+			"comment": "org level 5",
+			"name": "constant.character.escape",
+			"begin": "^[*]{5}\\s+",
+			"end": "$",
+			"pattern": [
+				{ "include": "#header" }
+			]
+		},
+		{
+			"comment": "org level 6",
+			"name": "constant.numeric",
+			"begin": "^[*]{6}\\s+",
+			"end": "$",
+			"pattern": [
+				{ "include": "#header" }
+			]
+		},
+		{ "include": "#common" }
+	],
+	"repository": {
+		"header": {
+			"patterns": [
+				{ "include": "#todo" },
+				{ "include": "#done" },
+				{ "include": "#count" },
+				{ "include": "#tag" },
+				{ "include": "#common" }
+			]
+		},
+		"common": {
+			"patterns": [
+				{ "include": "#time-prop" },
+				{ "include": "#time" },
+				{ "include": "#prop" },
+				{ "include": "#bold" },
+				{ "include": "#italic" },
+				{ "include": "#underline" },
+				{ "include": "#verbatim" },
+				{ "include": "#code" },
+				{ "include": "#strike" }
+			]
+		},
+		"todo": {
+			"name": "invalid.illegal",
+			"match": "\\bTODO\\b"
+		},
+		"done": {
+			"name": "constant.numeric",
+			"match": "\\bDONE\\b"
+		},
+		"count": {
+			"name": "invalid.illegal",
+			"match": "(^|\\s+)\\[\\d*\\/\\d*\\](\\s+|$)"
+		},
+		"tag": {
+			"name": "markup.bold",
+			"match": "(:)\\b(\\S+)\\b(:)"
+		},
+		"time-prop": {
+			"name": "keyword.control",
+			"match": "\\b(SCHEDULED|DEADLINE)\\b:"
+		},
+		"time": {
+			"name": "variable.parameter",
+			"match": "\\<\\d{4}-\\d{1,2}-\\d{1,2}(?: \\w{3})?(?: \\d{1,2}:\\d{2}(?:-)?(?:\\d{1,2}:\\d{2})?)?\\>"
+		},
+		"prop": {
+			"name": "variable.other",
+			"begin": ":\\bPROPERTIES\\b:",
+			"end": ":\\bEND\\b:",
+			"patterns": [
+				{ "include": "#prop-name" }
+			]
+		},
+		"prop-name": {
+			"match": "(:)\\b(\\S+)\\b(:)([\\s\\S]*$)",
+			"captures": {
+				"1": { "name": "keyword.control" },
+				"2": { "name": "keyword.control" },
+				"3": { "name": "keyword.control" },
+				"4": { "name": "keyword.operator" }
+			}
+		},
+		"bold": {
+			"name": "invalid.illegal",
+			"match": "\\*\\b\\p{L}+\\b\\*"
+		},
+		"italic": {
+			"name": "markup.italic",
+			"match": "\\/\\b\\p{L}+\\b\\/"
+		},
+		"underline": {
+			"name": "markup.underline",
+			"match": "\\b\\_\\p{L}+\\_\\b"
+		},
+		"verbatim": {
+			"name": "comment",
+			"match": "\\=\\b\\p{L}+\\b\\="
+		},
+		"code": {
+			"name": "string.regexp",
+			"match": "\\~\\b\\p{L}+\\b\\~"
+		},
+		"strike": {
+			"name": "keyword.control",
+			"match": "\\+\\b\\p{L}+\\b\\+"
+		}
+	}
+}
