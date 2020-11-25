@@ -8,7 +8,7 @@ export class Log {
 
 	private constructor() {
 		this.config = Config.getInstance();
-		this.log = vscode.window.createOutputChannel('Emacs');
+		this.log = vscode.window.createOutputChannel('Org');
 	}
 
 	static getInstance(): Log {
