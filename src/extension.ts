@@ -16,7 +16,7 @@ export class Org implements vscode.Disposable {
 		this.config = Config.getInstance();
 		this.log = Log.getInstance();
 		this.indent = new Indent(context);
-		this.folding = new Folding();
+		this.folding = new Folding(context);
 
 		// Register Folding Range Provider
 		if (this.config.get('fold')) {

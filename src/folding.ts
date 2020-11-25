@@ -5,7 +5,7 @@ export class Folding implements vscode.FoldingRangeProvider {
 	private config: Config;
 	private level: number;
 
-	constructor() {
+	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
 		this.level = this.config.get('headLevel');
 	}
