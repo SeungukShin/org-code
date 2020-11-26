@@ -1,7 +1,7 @@
 {
 	"name": "org",
 	"scopeName": "source.org",
-	"pattern": [
+	"patterns": [
 		{
 			"comment": "org metadata",
 			"name": "keyword.control",
@@ -12,7 +12,7 @@
 			"name": "entity.other.inherited-class",
 			"begin": "^[*]{1}\\s+",
 			"end": "$",
-			"pattern": [
+			"patterns": [
 				{ "include": "#header" }
 			]
 		},
@@ -21,7 +21,7 @@
 			"name": "entity.other.attribute-name",
 			"begin": "^[*]{2}\\s+",
 			"end": "$",
-			"pattern": [
+			"patterns": [
 				{ "include": "#header" }
 			]
 		},
@@ -30,7 +30,7 @@
 			"name": "entity.name.tag",
 			"begin": "^[*]{3}\\s+",
 			"end": "$",
-			"pattern": [
+			"patterns": [
 				{ "include": "#header" }
 			]
 		},
@@ -39,7 +39,7 @@
 			"name": "entity.name.function",
 			"begin": "^[*]{4}\\s+",
 			"end": "$",
-			"pattern": [
+			"patterns": [
 				{ "include": "#header" }
 			]
 		},
@@ -48,7 +48,7 @@
 			"name": "constant.character.escape",
 			"begin": "^[*]{5}\\s+",
 			"end": "$",
-			"pattern": [
+			"patterns": [
 				{ "include": "#header" }
 			]
 		},
@@ -57,7 +57,7 @@
 			"name": "constant.numeric",
 			"begin": "^[*]{6}\\s+",
 			"end": "$",
-			"pattern": [
+			"patterns": [
 				{ "include": "#header" }
 			]
 		},
