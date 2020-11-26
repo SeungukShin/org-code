@@ -40,13 +40,13 @@
 		],
 		"commands": [
 			{
-				"command": "extension.emacs-code.find.file",
+				"command": "emacs-code.find.file",
 				"title": "Emacs Code: Find File"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "extension.emacs-code.find.file",
+				"command": "emacs-code.find.file",
 				"key": "ctrl+x ctrl+f"
 			}
 		],

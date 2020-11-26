@@ -24,7 +24,7 @@ export class Org implements vscode.Disposable {
 		}
 
 		// Register Commands
-//		context.subscriptions.push(vscode.commands.registerCommand('extension.emacs-code.find.file', () => this.findFile()));
+//		context.subscriptions.push(vscode.commands.registerCommand('emacs-code.find.file', () => this.findFile()));
 
 		// open new document
 		vscode.window.onDidChangeActiveTextEditor(editor => {
