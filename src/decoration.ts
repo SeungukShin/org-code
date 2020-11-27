@@ -1,22 +1,29 @@
 import * as vscode from 'vscode';
 import { Config } from './config';
 
-export class Indent implements vscode.Disposable {
+export class Decoration implements vscode.Disposable {
 	private config: Config;
 	private decoTimer: NodeJS.Timer | undefined;
 	private static level: number;
+	private static indentRegex: RegExp;
 	private static headType: vscode.TextEditorDecorationType[] = [];
 	private static bodyType: vscode.TextEditorDecorationType[] = [];
+	private static keywordRegex: RegExp;
+	private static todoKeyword: string;
+	private static doneKeyword: string;
+	private static todoType: vscode.TextEditorDecorationType;
+	private static doneType: vscode.TextEditorDecorationType;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
-		Indent.level = this.config.get('headLevel');
 
-		// Decoration Type
+		// indent
+		Decoration.level = this.config.get('headLevel');
+		Decoration.indentRegex = new RegExp('\\n[*]{1,' + Decoration.level.toString() + '}\\s+|[\\s\\S]$', 'g');
 		let i;
-		for (i = 0; i < Indent.level; i++) {
+		for (i = 0; i < Decoration.level; i++) {
 			const headIndent = '*'.repeat(i);
-			Indent.headType.push(vscode.window.createTextEditorDecorationType({
+			Decoration.headType.push(vscode.window.createTextEditorDecorationType({
 				'light': {
 					'color': 'rgba(255, 255, 255, 0.0)'
 				},
@@ -26,10 +33,10 @@ export class Indent implements vscode.Disposable {
 				'before': {
 					'color': 'rgba(255, 255, 255, 0.0)',
 					'contentText': headIndent
-				},
+				}
 			}));
 			const bodyIndent = '*'.repeat((i + 1) * 2);
-			Indent.bodyType.push(vscode.window.createTextEditorDecorationType({
+			Decoration.bodyType.push(vscode.window.createTextEditorDecorationType({
 				'light': {
 					'backgroundColor': 'rgba(255, 0, 0, 1.0)'
 				},
@@ -39,9 +46,32 @@ export class Indent implements vscode.Disposable {
 				'before': {
 					'color': 'rgba(255, 255, 255, 0.0)',
 					'contentText': bodyIndent
-				},
+				}
 			}));
 		}
+
+		// keyword
+		Decoration.todoKeyword = this.config.get('todoKeyword');
+		Decoration.doneKeyword = this.config.get('doneKeyword');
+		let pattern = Decoration.todoKeyword + ' ' + Decoration.doneKeyword;
+		pattern = pattern.replace(/\([\S]\)/g, '').replace(/\s/g, '|');
+		Decoration.keywordRegex = new RegExp('\\b(' + pattern + ')\\b', 'g');
+		Decoration.todoType = vscode.window.createTextEditorDecorationType({
+			'light': {
+				'color': 'rgba(255, 0, 0, 1.0)'
+			},
+			'dark': {
+				'color': 'rgba(255, 0, 0, 1.0)'
+			}
+		});
+		Decoration.doneType = vscode.window.createTextEditorDecorationType({
+			'light': {
+				'color': 'rgba(0, 255, 0, 1.0)'
+			},
+			'dark': {
+				'color': 'rgba(0, 255, 0, 1.0)'
+			}
+		});
 	}
 
 	dispose(): void {
@@ -51,23 +81,22 @@ export class Indent implements vscode.Disposable {
 	private async updateDecorations(): Promise<void> {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
-			return;
+			return Promise.resolve();
 		}
 		const text = editor.document.getText();
+		let match;
 
+		// indent
 		let i;
 		const head: vscode.Range[][] = [];
 		const body: vscode.Range[][] = [];
-		for (i = 0; i < Indent.level; i++) {
+		for (i = 0; i < Decoration.level; i++) {
 			head[i] = [];
 			body[i] = [];
 		}
 		let preLevel = -1;
 		let preLine = -1;
-		const pattern = '\\n[*]{1,' + Indent.level.toString() + '}\\s+|[\\s\\S]$';
-		const regex = new RegExp(pattern, 'g');
-		let match;
-		while (match = regex.exec(text)) {
+		while (match = Decoration.indentRegex.exec(text)) {
 			const level = match[0].trim().startsWith('*') ? match[0].trim().length : 0;
 			const pos = editor.document.positionAt(match.index);
 			if (level == 0) {
@@ -90,10 +119,24 @@ export class Indent implements vscode.Disposable {
 				preLine = pos.line + 1;
 			}
 		}
-		for (i = 0; i < Indent.level; i++) {
-			editor.setDecorations(Indent.headType[i], head[i]);
-			editor.setDecorations(Indent.bodyType[i], body[i]);
+		for (i = 0; i < Decoration.level; i++) {
+			editor.setDecorations(Decoration.headType[i], head[i]);
+			editor.setDecorations(Decoration.bodyType[i], body[i]);
 		}
+
+		// keyword
+		const todo: vscode.Range[] = [];
+		const done: vscode.Range[] = [];
+		while (match = Decoration.keywordRegex.exec(text)) {
+			const pos = editor.document.positionAt(match.index);
+			if (Decoration.todoKeyword.includes(match[0])) {
+				todo.push(new vscode.Range(pos.line, pos.character, pos.line, pos.character + match[0].length));
+			} else {
+				done.push(new vscode.Range(pos.line, pos.character, pos.line, pos.character + match[0].length));
+			}
+		}
+		editor.setDecorations(Decoration.todoType, todo);
+		editor.setDecorations(Decoration.doneType, done);
 	}
 
 	startDecorations(): void {

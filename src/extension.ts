@@ -3,19 +3,19 @@ import * as path from 'path';
 import { Execute } from './execute';
 import { Config } from './config';
 import { Log } from './log';
-import { Indent } from './indent';
+import { Decoration } from './decoration';
 import { Folding } from './folding';
 
 export class Org implements vscode.Disposable {
 	private config: Config;
 	private log: Log;
-	private indent: Indent;
+	private decoration: Decoration;
 	private folding: Folding;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
 		this.log = Log.getInstance();
-		this.indent = new Indent(context);
+		this.decoration = new Decoration(context);
 		this.folding = new Folding(context);
 
 		// Register Folding Range Provider
@@ -34,10 +34,10 @@ export class Org implements vscode.Disposable {
 						vscode.commands.executeCommand('editor.foldAll');
 					}
 					if (this.config.get('indent')) {
-						this.indent.startDecorations();
+						this.decoration.startDecorations();
 					}
 				} else {
-					this.indent.stopDecorations();
+					this.decoration.stopDecorations();
 				}
 			}
 		}, null, context.subscriptions);
@@ -48,10 +48,10 @@ export class Org implements vscode.Disposable {
 			if (editor && event.document === editor.document) {
 				if (editor.document.languageId === 'org') {
 					if (this.config.get('indent')) {
-						this.indent.startDecorations();
+						this.decoration.startDecorations();
 					}
 				} else {
-					this.indent.stopDecorations();
+					this.decoration.stopDecorations();
 				}
 			}
 		}, null, context.subscriptions);
@@ -64,16 +64,16 @@ export class Org implements vscode.Disposable {
 					vscode.commands.executeCommand('editor.foldAll');
 				}
 				if (this.config.get('indent')) {
-					this.indent.startDecorations();
+					this.decoration.startDecorations();
 				}
 			} else {
-				this.indent.stopDecorations();
+				this.decoration.stopDecorations();
 			}
 		}
 	}
 
 	dispose(): void {
-		this.indent.dispose();
+		this.decoration.dispose();
 	}
 }
 
