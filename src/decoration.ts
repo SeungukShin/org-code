@@ -8,9 +8,9 @@ export class Decoration implements vscode.Disposable {
 	private static indentRegex: RegExp;
 	private static headType: vscode.TextEditorDecorationType[] = [];
 	private static bodyType: vscode.TextEditorDecorationType[] = [];
-	private static keywordRegex: RegExp;
-	private static todoKeyword: string;
-	private static doneKeyword: string;
+	private static stateRegex: RegExp;
+	private static todoState: string;
+	private static doneState: string;
 	private static todoType: vscode.TextEditorDecorationType;
 	private static doneType: vscode.TextEditorDecorationType;
 
@@ -50,12 +50,11 @@ export class Decoration implements vscode.Disposable {
 			}));
 		}
 
-		// keyword
-		Decoration.todoKeyword = this.config.get('todoKeyword');
-		Decoration.doneKeyword = this.config.get('doneKeyword');
-		let pattern = Decoration.todoKeyword + ' ' + Decoration.doneKeyword;
-		pattern = pattern.replace(/\([\S]\)/g, '').replace(/\s/g, '|');
-		Decoration.keywordRegex = new RegExp('\\b(' + pattern + ')\\b', 'g');
+		// state
+		Decoration.todoState = this.config.get('todoState');
+		Decoration.doneState = this.config.get('doneState');
+		const pattern = (Decoration.todoState + ' ' + Decoration.doneState).replace(/\s/g, '|');
+		Decoration.stateRegex = new RegExp('\\b(' + pattern + ')\\b', 'g');
 		Decoration.todoType = vscode.window.createTextEditorDecorationType({
 			'light': {
 				'color': 'rgba(255, 0, 0, 1.0)'
@@ -124,12 +123,12 @@ export class Decoration implements vscode.Disposable {
 			editor.setDecorations(Decoration.bodyType[i], body[i]);
 		}
 
-		// keyword
+		// state
 		const todo: vscode.Range[] = [];
 		const done: vscode.Range[] = [];
-		while (match = Decoration.keywordRegex.exec(text)) {
+		while (match = Decoration.stateRegex.exec(text)) {
 			const pos = editor.document.positionAt(match.index);
-			if (Decoration.todoKeyword.includes(match[0])) {
+			if (Decoration.todoState.includes(match[0])) {
 				todo.push(new vscode.Range(pos.line, pos.character, pos.line, pos.character + match[0].length));
 			} else {
 				done.push(new vscode.Range(pos.line, pos.character, pos.line, pos.character + match[0].length));

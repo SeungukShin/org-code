@@ -73,13 +73,13 @@
 						"default": 10,
 						"description": "Max. buffer size for output from cscope in MB."
 					},
-					"org-code.todoKeyword": {
+					"org-code.todoState": {
 						"type": "string",
-						"default": "TODO(t) WAIT(w)"
+						"default": "TODO WAIT"
 					},
-					"org-code.doneKeyword": {
+					"org-code.doneState": {
 						"type": "string",
-						"default": "DONE(d) DROP(p)"
+						"default": "DONE DROP"
 					},
 					"org-code.headLevel": {
 						"type": "number",
