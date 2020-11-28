@@ -40,14 +40,14 @@
 		],
 		"commands": [
 			{
-				"command": "emacs-code.find.file",
-				"title": "Emacs Code: Find File"
+				"command": "org-code.set.state",
+				"title": "Org Code: Set State"
 			}
 		],
 		"keybindings": [
 			{
-				"command": "emacs-code.find.file",
-				"key": "ctrl+x ctrl+f"
+				"command": "org-code.set.state",
+				"key": "ctrl+c ctrl+t"
 			}
 		],
 		"configuration": [
