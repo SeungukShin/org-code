@@ -3,12 +3,15 @@ import * as path from 'path';
 import { Execute } from './execute';
 import { Config } from './config';
 import { Log } from './log';
+import { Parser } from './parser';
 import { Decoration } from './decoration';
 import { Folding } from './folding';
 
 export class Org implements vscode.Disposable {
 	private config: Config;
 	private log: Log;
+	private updateTimer: NodeJS.Timer | undefined;
+	private parser: Parser;
 	private decoration: Decoration;
 	private folding: Folding;
 	private level: number;
@@ -19,6 +22,7 @@ export class Org implements vscode.Disposable {
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
 		this.log = Log.getInstance();
+		this.parser = new Parser(context);
 		this.decoration = new Decoration(context);
 		this.folding = new Folding(context);
 		this.level = this.config.get('headLevel');
@@ -38,14 +42,12 @@ export class Org implements vscode.Disposable {
 		vscode.window.onDidChangeActiveTextEditor(editor => {
 			if (editor) {
 				if (editor.document.languageId === 'org') {
+					this.startUpdate();
 					if (this.config.get('fold') && this.config.get('foldOnStart')) {
 						vscode.commands.executeCommand('editor.foldAll');
 					}
-					if (this.config.get('indent')) {
-						this.decoration.startDecorations();
-					}
 				} else {
-					this.decoration.stopDecorations();
+					this.stopUpdate();
 				}
 			}
 		}, null, context.subscriptions);
@@ -55,11 +57,9 @@ export class Org implements vscode.Disposable {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && event.document === editor.document) {
 				if (editor.document.languageId === 'org') {
-					if (this.config.get('indent')) {
-						this.decoration.startDecorations();
-					}
+					this.startUpdate();
 				} else {
-					this.decoration.stopDecorations();
+					this.stopUpdate();
 				}
 			}
 		}, null, context.subscriptions);
@@ -68,20 +68,44 @@ export class Org implements vscode.Disposable {
 		if (vscode.window.activeTextEditor) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor.document.languageId === 'org') {
+				this.startUpdate();
 				if (this.config.get('fold') && this.config.get('foldOnStart')) {
 					vscode.commands.executeCommand('editor.foldAll');
 				}
-				if (this.config.get('indent')) {
-					this.decoration.startDecorations();
-				}
 			} else {
-				this.decoration.stopDecorations();
+				this.stopUpdate();
 			}
 		}
 	}
 
 	dispose(): void {
+		this.stopUpdate();
 		this.decoration.dispose();
+	}
+
+	private async update(self: Org): Promise<void> {
+		await self.parser.parse();
+		if (self.config.get('indent')) {
+			if (self.parser.first) {
+				self.decoration.updateDecorations(self.parser.first);
+			}
+		}
+	}
+
+	startUpdate(): void {
+		const delay: number = this.config.get('updateDelay');
+		if (this.updateTimer) {
+			clearTimeout(this.updateTimer);
+			this.updateTimer = undefined;
+		}
+		this.updateTimer = setTimeout(this.update, delay, this);
+	}
+
+	stopUpdate(): void {
+		if (this.updateTimer) {
+			clearTimeout(this.updateTimer);
+			this.updateTimer = undefined;
+		}
 	}
 
 	async setState(): Promise<void> {

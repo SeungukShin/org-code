@@ -1,29 +1,27 @@
 import * as vscode from 'vscode';
 import { Config } from './config';
+import { Head } from './head';
 
 export class Decoration implements vscode.Disposable {
 	private config: Config;
-	private decoTimer: NodeJS.Timer | undefined;
-	private static level: number;
-	private static indentRegex: RegExp;
-	private static headType: vscode.TextEditorDecorationType[] = [];
-	private static bodyType: vscode.TextEditorDecorationType[] = [];
-	private static stateRegex: RegExp;
-	private static todoState: string;
-	private static doneState: string;
-	private static todoType: vscode.TextEditorDecorationType;
-	private static doneType: vscode.TextEditorDecorationType;
+	private level: number;
+	private headType: vscode.TextEditorDecorationType[] = [];
+	private bodyType: vscode.TextEditorDecorationType[] = [];
+	private stateRegex: RegExp;
+	private todoState: string;
+	private doneState: string;
+	private todoType: vscode.TextEditorDecorationType;
+	private doneType: vscode.TextEditorDecorationType;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
 
 		// indent
-		Decoration.level = this.config.get('headLevel');
-		Decoration.indentRegex = new RegExp('\\n[*]{1,' + Decoration.level.toString() + '}\\s+|[\\s\\S]$', 'g');
+		this.level = this.config.get('headLevel');
 		let i;
-		for (i = 0; i < Decoration.level; i++) {
+		for (i = 0; i < this.level; i++) {
 			const headIndent = '*'.repeat(i);
-			Decoration.headType.push(vscode.window.createTextEditorDecorationType({
+			this.headType.push(vscode.window.createTextEditorDecorationType({
 				'light': {
 					'color': 'rgba(255, 255, 255, 0.0)'
 				},
@@ -36,7 +34,7 @@ export class Decoration implements vscode.Disposable {
 				}
 			}));
 			const bodyIndent = '*'.repeat((i + 1) * 2);
-			Decoration.bodyType.push(vscode.window.createTextEditorDecorationType({
+			this.bodyType.push(vscode.window.createTextEditorDecorationType({
 				'light': {
 					'backgroundColor': 'rgba(255, 0, 0, 1.0)'
 				},
@@ -51,11 +49,11 @@ export class Decoration implements vscode.Disposable {
 		}
 
 		// state
-		Decoration.todoState = this.config.get('todoState');
-		Decoration.doneState = this.config.get('doneState');
-		const pattern = (Decoration.todoState + ' ' + Decoration.doneState).replace(/\s/g, '|');
-		Decoration.stateRegex = new RegExp('\\b(' + pattern + ')\\b', 'g');
-		Decoration.todoType = vscode.window.createTextEditorDecorationType({
+		this.todoState = this.config.get('todoState');
+		this.doneState = this.config.get('doneState');
+		const pattern = (this.todoState + ' ' + this.doneState).replace(/\s/g, '|');
+		this.stateRegex = new RegExp('\\b(' + pattern + ')\\b', 'g');
+		this.todoType = vscode.window.createTextEditorDecorationType({
 			'light': {
 				'color': 'rgba(255, 0, 0, 1.0)'
 			},
@@ -63,7 +61,7 @@ export class Decoration implements vscode.Disposable {
 				'color': 'rgba(255, 0, 0, 1.0)'
 			}
 		});
-		Decoration.doneType = vscode.window.createTextEditorDecorationType({
+		this.doneType = vscode.window.createTextEditorDecorationType({
 			'light': {
 				'color': 'rgba(0, 255, 0, 1.0)'
 			},
@@ -74,83 +72,57 @@ export class Decoration implements vscode.Disposable {
 	}
 
 	dispose(): void {
-		this.stopDecorations();
 	}
 
-	private async updateDecorations(): Promise<void> {
+	async updateDecorations(first: Head): Promise<void> {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			return Promise.resolve();
 		}
-		const text = editor.document.getText();
-		let match;
 
-		// indent
+		let h: Head | undefined = first;
 		let i;
 		const head: vscode.Range[][] = [];
 		const body: vscode.Range[][] = [];
-		for (i = 0; i < Decoration.level; i++) {
+		for (i = 0; i < this.level; i++) {
 			head[i] = [];
 			body[i] = [];
 		}
-		let preLevel = -1;
-		let preLine = -1;
-		while (match = Decoration.indentRegex.exec(text)) {
-			const level = match[0].trim().startsWith('*') ? match[0].trim().length : 0;
-			const pos = editor.document.positionAt(match.index);
-			if (level == 0) {
-				// end of file
-				if (preLevel >= 0 && preLine >= 0 && pos.line > preLine) {
-					for (i = preLine + 1; i <= pos.line; i++) {
-						body[preLevel - 1].push(new vscode.Range(i, 0, i, 0));
-					}
-				}
-			} else {
-				// head
-				head[level - 1].push(new vscode.Range(pos.line + 1, 0, pos.line + 1, level - 1));
-				// body
-				if (preLevel >= 0 && preLine >= 0 && pos.line > preLine) {
-					for (i = preLine + 1; i <= pos.line; i++) {
-						body[preLevel - 1].push(new vscode.Range(i, 0, i, 0));
-					}
-				}
-				preLevel = level;
-				preLine = pos.line + 1;
-			}
-		}
-		for (i = 0; i < Decoration.level; i++) {
-			editor.setDecorations(Decoration.headType[i], head[i]);
-			editor.setDecorations(Decoration.bodyType[i], body[i]);
-		}
-
-		// state
 		const todo: vscode.Range[] = [];
 		const done: vscode.Range[] = [];
-		while (match = Decoration.stateRegex.exec(text)) {
-			const pos = editor.document.positionAt(match.index);
-			if (Decoration.todoState.includes(match[0])) {
-				todo.push(new vscode.Range(pos.line, pos.character, pos.line, pos.character + match[0].length));
-			} else {
-				done.push(new vscode.Range(pos.line, pos.character, pos.line, pos.character + match[0].length));
+		while (h) {
+			const level = h.level;
+			const headLine = h.rangeHead.start.line;
+
+			// head
+			head[level - 1].push(new vscode.Range(headLine, 0, headLine, level - 1));
+
+			// body
+			if (h.rangeBody) {
+				const stLine = h.rangeBody.start.line;
+				const edLine = h.rangeBody.end.line;
+				for (i = stLine; i <= edLine; i++) {
+					body[level - 1].push(new vscode.Range(i, 0, i, 0));
+				}
 			}
-		}
-		editor.setDecorations(Decoration.todoType, todo);
-		editor.setDecorations(Decoration.doneType, done);
-	}
 
-	startDecorations(): void {
-		const delay: number = this.config.get('updateDelay');
-		if (this.decoTimer) {
-			clearTimeout(this.decoTimer);
-			this.decoTimer = undefined;
-		}
-		this.decoTimer = setTimeout(this.updateDecorations, delay);
-	}
+			if (h.stateColumn > 0) {
+				if (this.todoState.includes(h.state)) {
+					// todo
+					todo.push(new vscode.Range(headLine, h.stateColumn, headLine, h.stateColumn + h.state.length));
+				} else {
+					// done
+					done.push(new vscode.Range(headLine, h.stateColumn, headLine, h.stateColumn + h.state.length));
+				}
+			}
 
-	stopDecorations(): void {
-		if (this.decoTimer) {
-			clearTimeout(this.decoTimer);
-			this.decoTimer = undefined;
+			h = h.nextHead;
 		}
+		for (i = 0; i < this.level; i++) {
+			editor.setDecorations(this.headType[i], head[i]);
+			editor.setDecorations(this.bodyType[i], body[i]);
+		}
+		editor.setDecorations(this.todoType, todo);
+		editor.setDecorations(this.doneType, done);
 	}
 }
