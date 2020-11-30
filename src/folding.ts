@@ -16,7 +16,10 @@ export class Folding implements vscode.FoldingRangeProvider {
 		if (!editor) {
 			return range;
 		}
-		const text = editor.document.getText();
+		if (editor.document !== document) {
+			return range;
+		}
+		const text = document.getText();
 
 		let i;
 		const preLine: number[] = [];
