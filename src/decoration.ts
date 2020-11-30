@@ -7,9 +7,7 @@ export class Decoration implements vscode.Disposable {
 	private level: number;
 	private headType: vscode.TextEditorDecorationType[] = [];
 	private bodyType: vscode.TextEditorDecorationType[] = [];
-	private stateRegex: RegExp;
 	private todoState: string;
-	private doneState: string;
 	private todoType: vscode.TextEditorDecorationType;
 	private doneType: vscode.TextEditorDecorationType;
 
@@ -50,9 +48,6 @@ export class Decoration implements vscode.Disposable {
 
 		// state
 		this.todoState = this.config.get('todoState');
-		this.doneState = this.config.get('doneState');
-		const pattern = (this.todoState + ' ' + this.doneState).replace(/\s/g, '|');
-		this.stateRegex = new RegExp('\\b(' + pattern + ')\\b', 'g');
 		this.todoType = vscode.window.createTextEditorDecorationType({
 			'light': {
 				'color': 'rgba(255, 0, 0, 1.0)'
@@ -106,6 +101,7 @@ export class Decoration implements vscode.Disposable {
 				}
 			}
 
+			// state
 			if (h.stateColumn > 0) {
 				if (this.todoState.includes(h.state)) {
 					// todo
