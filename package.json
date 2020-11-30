@@ -100,11 +100,6 @@
 						"type": "boolean",
 						"default": true,
 						"description": "Folding based on head"
-					},
-					"org-code.foldOnStart": {
-						"type": "boolean",
-						"default": true,
-						"description": "Fold all on start"
 					}
 				}
 			}

@@ -43,9 +43,6 @@ export class Org implements vscode.Disposable {
 			if (editor) {
 				if (editor.document.languageId === 'org') {
 					this.startUpdate();
-					if (this.config.get('fold') && this.config.get('foldOnStart')) {
-						vscode.commands.executeCommand('editor.foldAll');
-					}
 				} else {
 					this.stopUpdate();
 				}
@@ -69,9 +66,6 @@ export class Org implements vscode.Disposable {
 			const editor = vscode.window.activeTextEditor;
 			if (editor.document.languageId === 'org') {
 				this.startUpdate();
-				if (this.config.get('fold') && this.config.get('foldOnStart')) {
-					vscode.commands.executeCommand('editor.foldAll');
-				}
 			} else {
 				this.stopUpdate();
 			}
