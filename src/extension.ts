@@ -6,6 +6,7 @@ import { Log } from './log';
 import { Parser } from './parser';
 import { Decoration } from './decoration';
 import { Folding } from './folding';
+import { State } from './state';
 
 export class Org implements vscode.Disposable {
 	private config: Config;
@@ -14,10 +15,8 @@ export class Org implements vscode.Disposable {
 	private parser: Parser;
 	private decoration: Decoration;
 	private folding: Folding;
+	private state: State;
 	private level: number;
-	private todoState: string;
-	private doneState: string;
-	private state: string;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
@@ -25,10 +24,8 @@ export class Org implements vscode.Disposable {
 		this.parser = new Parser(context);
 		this.decoration = new Decoration(context);
 		this.folding = new Folding(context);
+		this.state = new State(context);
 		this.level = this.config.get('headLevel');
-		this.todoState = this.config.get('todoState');
-		this.doneState = this.config.get('doneState');
-		this.state = this.todoState + ' ' + this.doneState;
 
 		// Register Folding Range Provider
 		if (this.config.get('fold')) {
@@ -36,7 +33,7 @@ export class Org implements vscode.Disposable {
 		}
 
 		// Register Commands
-		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.state', () => this.setState()));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.state', () => this.state.setState(this.parser.first)));
 
 		// open new document
 		vscode.window.onDidChangeActiveTextEditor(editor => {
@@ -100,49 +97,6 @@ export class Org implements vscode.Disposable {
 			clearTimeout(this.updateTimer);
 			this.updateTimer = undefined;
 		}
-	}
-
-	async setState(): Promise<void> {
-		// get current line
-		const editor = vscode.window.activeTextEditor;
-		if (!editor) {
-			return Promise.resolve();
-		}
-		const position = editor.selection.active;
-		const line = editor.document.lineAt(position.line);
-
-		// check head
-		const headRegex = new RegExp('^[*]{1,' + this.level.toString() + '}\\s+', 'g');
-		const headMatch = headRegex.exec(line.text);
-		if (!headMatch) {
-			return Promise.resolve();
-		}
-
-		// select new state
-		const state = await vscode.window.showQuickPick(this.state.split(' '));
-		if (!state) {
-			return Promise.resolve();
-		}
-
-		// remove old state
-		const stateRegex = new RegExp('^[*]{1,' + this.level.toString() + '}\\s+(' + this.state.replace(/\s/g, '|') + ')', 'g');
-		const stateMatch = stateRegex.exec(line.text);
-		if (stateMatch) {
-			console.log(stateMatch[0]);
-			await editor.edit((editBuilder) => {
-				const l = line.lineNumber;
-				const c = stateMatch[0].length;
-				const len = stateMatch[0].split(/\s+/)[1].length;
-				editBuilder.delete(new vscode.Range(l, c - len - 1, l, c));
-			})
-		}
-
-		// add new state
-		await editor.edit((editBuilder) => {
-			const l = line.lineNumber;
-			const c = headMatch[0].trim().length;
-			editBuilder.insert(new vscode.Position(l, c), ' ' + state);
-		})
 	}
 }
 
