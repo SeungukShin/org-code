@@ -1,18 +1,21 @@
 import * as vscode from 'vscode';
 import { Config } from './config';
 import { Head } from './head';
+import { Parser } from './parser';
 
 export class Decoration implements vscode.Disposable {
 	private config: Config;
+	private parser: Parser;
 	private level: number;
 	private headType: vscode.TextEditorDecorationType[] = [];
 	private bodyType: vscode.TextEditorDecorationType[] = [];
-	private todoState: string;
+	private doneState: string;
 	private todoType: vscode.TextEditorDecorationType;
 	private doneType: vscode.TextEditorDecorationType;
 
-	constructor(context: vscode.ExtensionContext) {
+	constructor(parser: Parser) {
 		this.config = Config.getInstance();
+		this.parser = parser;
 
 		// indent
 		this.level = this.config.get('headLevel');
@@ -47,7 +50,7 @@ export class Decoration implements vscode.Disposable {
 		}
 
 		// state
-		this.todoState = this.config.get('todoState');
+		this.doneState = this.config.get('doneState');
 		this.todoType = vscode.window.createTextEditorDecorationType({
 			'light': {
 				'color': 'rgba(255, 0, 0, 1.0)'
@@ -69,13 +72,13 @@ export class Decoration implements vscode.Disposable {
 	dispose(): void {
 	}
 
-	async updateDecorations(first: Head): Promise<void> {
+	async updateDecorations(): Promise<void> {
 		const editor = vscode.window.activeTextEditor;
 		if (!editor) {
 			return Promise.resolve();
 		}
 
-		let h: Head | undefined = first;
+		let h: Head | undefined = this.parser.getHead();
 		let i;
 		const head: vscode.Range[][] = [];
 		const body: vscode.Range[][] = [];
@@ -103,12 +106,24 @@ export class Decoration implements vscode.Disposable {
 
 			// state
 			if (h.stateColumn > 0) {
-				if (this.todoState.includes(h.state)) {
-					// todo
-					todo.push(new vscode.Range(headLine, h.stateColumn, headLine, h.stateColumn + h.state.length));
-				} else {
+				if (this.doneState.includes(h.state)) {
 					// done
 					done.push(new vscode.Range(headLine, h.stateColumn, headLine, h.stateColumn + h.state.length));
+				} else {
+					// todo
+					todo.push(new vscode.Range(headLine, h.stateColumn, headLine, h.stateColumn + h.state.length));
+				}
+			}
+
+			// count
+			if (h.countColumn > 0) {
+				const count = h.count.substring(1, h.count.length - 1).split('/');
+				if (parseInt(count[0]) >= parseInt(count[1])) {
+					// done
+					done.push(new vscode.Range(headLine, h.countColumn, headLine, h.countColumn + h.count.length));
+				} else {
+					// todo
+					todo.push(new vscode.Range(headLine, h.countColumn, headLine, h.countColumn + h.count.length));
 				}
 			}
 

@@ -22,9 +22,9 @@ export class Org implements vscode.Disposable {
 		this.config = Config.getInstance();
 		this.log = Log.getInstance();
 		this.parser = new Parser(context);
-		this.decoration = new Decoration(context);
+		this.decoration = new Decoration(this.parser);
 		this.folding = new Folding(context);
-		this.state = new State(context);
+		this.state = new State(this.parser);
 		this.level = this.config.get('headLevel');
 
 		// Register Folding Range Provider
@@ -33,7 +33,7 @@ export class Org implements vscode.Disposable {
 		}
 
 		// Register Commands
-		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.state', () => this.state.setState(this.parser.first)));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.state', () => this.state.setState()));
 
 		// open new document
 		vscode.window.onDidChangeActiveTextEditor(editor => {
@@ -77,9 +77,7 @@ export class Org implements vscode.Disposable {
 	private async update(self: Org): Promise<void> {
 		await self.parser.parse();
 		if (self.config.get('indent')) {
-			if (self.parser.first) {
-				self.decoration.updateDecorations(self.parser.first);
-			}
+			self.decoration.updateDecorations();
 		}
 	}
 

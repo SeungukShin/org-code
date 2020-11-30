@@ -6,14 +6,16 @@ export class Parser implements vscode.Disposable {
 	private config: Config;
 	private level: number;
 	private state: string[];
-	private regex: RegExp;
-	first: Head | undefined;
+	private headRegex: RegExp;
+	private countRegex: RegExp;
+	private first: Head | undefined;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
 		this.level = this.config.get('headLevel');
 		this.state = (this.config.get('todoState') + ' ' + this.config.get('doneState')).split(' ');
-		this.regex = new RegExp('\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$', 'g');
+		this.headRegex = new RegExp('\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$', 'g');
+		this.countRegex = new RegExp('\\[\\d*\\/\\d*\\]', 'g');
 		this.first = undefined;
 	}
 
@@ -30,7 +32,7 @@ export class Parser implements vscode.Disposable {
 		let match;
 		const parent: Head[] = [];
 		let prevHead: Head | undefined = undefined;
-		while (match = this.regex.exec(text)) {
+		while (match = this.headRegex.exec(text)) {
 			const level = match[0].trim().startsWith('*') ? match[0].trim().length : 0;
 			const pos = editor.document.positionAt(match.index);
 			if (level == 0) {
@@ -55,6 +57,13 @@ export class Parser implements vscode.Disposable {
 				if ((lineArray.length > 2) && this.state.includes(lineArray[1])) {
 					head.state = lineArray[1];
 					head.stateColumn = line.text.indexOf(head.state);
+				}
+
+				// count
+				const countMatch = this.countRegex.exec(line.text);
+				if (countMatch) {
+					head.count = countMatch[0];
+					head.countColumn = countMatch.index;
 				}
 
 				// body
@@ -88,5 +97,21 @@ export class Parser implements vscode.Disposable {
 			}
 		}
 		return Promise.resolve();
+	}
+
+	getHead(line: number | undefined = undefined): Head | undefined {
+		if (!line) {
+			return this.first;
+		}
+		let h = this.first;
+		while (h) {
+			const headLine = h.rangeHead.start.line;
+			const bodyLine = (h.rangeBody) ? h.rangeBody.end.line : h.rangeHead.start.line;
+			if (line >= headLine && line <= bodyLine) {
+				break;
+			}
+			h = h.nextHead;
+		}
+		return h;
 	}
 }
