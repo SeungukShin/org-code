@@ -59,12 +59,12 @@
 			},
 			{
 				"command": "org-code.rotate.next.state",
-				"key": "shift+rightarrow",
+				"key": "shift+right",
 				"when": "editorTextFocus && editorLangId == 'org'"
 			},
 			{
 				"command": "org-code.rotate.prev.state",
-				"key": "shift+leftarrow",
+				"key": "shift+left",
 				"when": "editorTextFocus && editorLangId == 'org'"
 			}
 		],
