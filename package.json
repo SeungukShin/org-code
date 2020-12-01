@@ -54,6 +54,14 @@
 		],
 		"keybindings": [
 			{
+				"command": "org-code.promote",
+				"key": "alt+left"
+			},
+			{
+				"command": "org-code.demote",
+				"key": "alt+right"
+			},
+			{
 				"command": "org-code.set.state",
 				"key": "ctrl+c ctrl+t"
 			},

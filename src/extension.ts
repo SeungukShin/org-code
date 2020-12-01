@@ -6,6 +6,7 @@ import { Log } from './log';
 import { Parser } from './parser';
 import { Decoration } from './decoration';
 import { Folding } from './folding';
+import { Level } from './level';
 import { State } from './state';
 
 export class Org implements vscode.Disposable {
@@ -15,8 +16,8 @@ export class Org implements vscode.Disposable {
 	private parser: Parser;
 	private decoration: Decoration;
 	private folding: Folding;
+	private level: Level;
 	private state: State;
-	private level: number;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
@@ -24,8 +25,8 @@ export class Org implements vscode.Disposable {
 		this.parser = new Parser(context);
 		this.decoration = new Decoration(this.parser);
 		this.folding = new Folding(context);
+		this.level = new Level(this.parser);
 		this.state = new State(this.parser);
-		this.level = this.config.get('headLevel');
 
 		// Register Folding Range Provider
 		if (this.config.get('fold')) {
@@ -33,6 +34,8 @@ export class Org implements vscode.Disposable {
 		}
 
 		// Register Commands
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.promote', () => this.level.changeHeadLevel(-1)));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.demote', () => this.level.changeHeadLevel(1)));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.state', () => this.state.setState()));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.rotate.next.state', () => this.state.rotateState(1)));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.rotate.prev.state', () => this.state.rotateState(-1)));
