@@ -42,12 +42,30 @@
 			{
 				"command": "org-code.set.state",
 				"title": "Org Code: Set State"
+			},
+			{
+				"command": "org-code.rotate.next.state",
+				"title": "Org Code: Rotate Next State"
+			},
+			{
+				"command": "org-code.rotate.prev.state",
+				"title": "Org Code: Rotate Previous State"
 			}
 		],
 		"keybindings": [
 			{
 				"command": "org-code.set.state",
 				"key": "ctrl+c ctrl+t"
+			},
+			{
+				"command": "org-code.rotate.next.state",
+				"key": "shift+rightarrow",
+				"when": "editorTextFocus && editorLangId == 'org'"
+			},
+			{
+				"command": "org-code.rotate.prev.state",
+				"key": "shift+leftarrow",
+				"when": "editorTextFocus && editorLangId == 'org'"
 			}
 		],
 		"configuration": [

@@ -62,9 +62,47 @@ export class State implements vscode.Disposable {
 			return Promise.resolve();
 		}
 
+		// get previous state
+		const headLine = h.rangeHead.start.line;
+		const prevState = h.state;
+		const stateColumn = (h.stateColumn == -1) ? h.level : h.stateColumn;
+
 		// select new state
 		const state = await vscode.window.showQuickPick(this.state);
 		if (!state) {
+			return Promise.resolve();
+		}
+
+		// remove previous state
+		if (h.stateColumn > 0) {
+			await editor.edit((editBuilder) => {
+				editBuilder.delete(new vscode.Range(headLine, stateColumn, headLine, stateColumn + prevState.length));
+			});
+		}
+
+		// add new state
+		const newState = (h.stateColumn == -1) ? ' ' + state : state;
+		await editor.edit((editBuilder) => {
+			editBuilder.insert(new vscode.Position(headLine, stateColumn), newState);
+		});
+		h.state = state;
+
+		// calculate parent
+		if (h.parent) {
+			this.calChildren(h.parent);
+		}
+	}
+
+	async rotateState(offset: number): Promise<void> {
+		const editor = vscode.window.activeTextEditor;
+		if (!editor) {
+			return Promise.resolve();
+		}
+		const currLine = editor.selection.active.line;
+
+		// find head
+		let h = this.parser.getHead(currLine);
+		if (!h) {
 			return Promise.resolve();
 		}
 
@@ -72,6 +110,15 @@ export class State implements vscode.Disposable {
 		const headLine = h.rangeHead.start.line;
 		const prevState = h.state;
 		const stateColumn = (h.stateColumn == -1) ? h.level : h.stateColumn;
+
+		// select new state
+		let index = this.state.indexOf(prevState) + offset;
+		if (index >= this.state.length) {
+			index = 0;
+		} else if (index < 0) {
+			index = this.state.length - 1;
+		}
+		const state = this.state[index];
 
 		// remove previous state
 		if (h.stateColumn > 0) {
