@@ -54,12 +54,20 @@
 		],
 		"keybindings": [
 			{
-				"command": "org-code.promote",
+				"command": "org-code.promote.head",
 				"key": "alt+left"
 			},
 			{
-				"command": "org-code.demote",
+				"command": "org-code.demote.head",
 				"key": "alt+right"
+			},
+			{
+				"command": "org-code.promote.tree",
+				"key": "alt+shift+left"
+			},
+			{
+				"command": "org-code.demote.tree",
+				"key": "alt+shift+right"
 			},
 			{
 				"command": "org-code.set.state",

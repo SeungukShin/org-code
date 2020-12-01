@@ -34,8 +34,10 @@ export class Org implements vscode.Disposable {
 		}
 
 		// Register Commands
-		context.subscriptions.push(vscode.commands.registerCommand('org-code.promote', () => this.level.changeHeadLevel(-1)));
-		context.subscriptions.push(vscode.commands.registerCommand('org-code.demote', () => this.level.changeHeadLevel(1)));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.promote.head', () => this.level.changeHeadLevel(-1)));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.demote.head', () => this.level.changeHeadLevel(1)));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.promote.tree', () => this.level.changeTreeLevel(-1)));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.demote.tree', () => this.level.changeTreeLevel(1)));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.state', () => this.state.setState()));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.rotate.next.state', () => this.state.rotateState(1)));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.rotate.prev.state', () => this.state.rotateState(-1)));
