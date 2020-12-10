@@ -17,6 +17,8 @@ Integrates [Org](https://orgmode.org) into VS Code.
 | `ctrl+c ctrl+t`   | Set a state on a head          | `org-code.set.state`      |
 | `shift+left`      | Set a previous state on a head | `org-code.set.prev.state` |
 | `shift+right`     | Set a next state on a head     | `org-code.set.next.state` |
+| `ctrl+c ctrl+s`   | Insert schedule date           | `org-code.open.calendar`  |
+| `ctrl+c ctrl+d`   | Insert deadline date           | `org-code.open.calendar`  |
 
 ## Configurations
 | Name         | Description                                    | Default   |
