@@ -11,3 +11,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Add folding feature.
 - Add set / rotate state feature.
 - Add promote / demote head / tree feature.
+- Add a date selector.

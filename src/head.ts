@@ -11,6 +11,10 @@ export class Head {
 	countColumn: number = -1;
 	rangeHead: vscode.Range;
 	rangeBody: vscode.Range | undefined = undefined;
+	schedule: string = '';
+	scheduleColumn: number = -1;
+	deadline: string = '';
+	deadlineColumn: number = -1;
 	parent: Head | undefined = undefined;
 	prevHead: Head | undefined = undefined;
 	nextHead: Head | undefined = undefined;

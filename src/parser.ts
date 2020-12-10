@@ -66,6 +66,21 @@ export class Parser implements vscode.Disposable {
 					head.countColumn = countMatch.index;
 				}
 
+				// schedule and deadline
+				if (editor.document.lineCount > pos.line + 2) {
+					const nextLine = editor.document.lineAt(pos.line + 2);
+					head.scheduleColumn = nextLine.text.indexOf('SCHEDULED:');
+					if (head.scheduleColumn >= 0) {
+						const end = nextLine.text.indexOf('>', head.scheduleColumn);
+						head.schedule = nextLine.text.slice(head.scheduleColumn, end + 1);
+					}
+					head.deadlineColumn = nextLine.text.indexOf('DEADLINE:');
+					if (head.deadlineColumn >= 0) {
+						const end = nextLine.text.indexOf('>', head.deadlineColumn);
+						head.deadline = nextLine.text.slice(head.deadlineColumn, end + 1);
+					}
+				}
+
 				// body
 				if (prevHead) {
 					prevHead.nextHead = head;

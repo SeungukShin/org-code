@@ -29,6 +29,15 @@
 				"aliases": [
 					"Org"
 				]
+			},
+			{
+				"id": "calendar",
+				"extensions": [
+					".calendar"
+				],
+				"aliases": [
+					"Calendar"
+				]
 			}
 		],
 		"grammars": [
@@ -36,6 +45,11 @@
 				"language": "org",
 				"scopeName": "source.org",
 				"path": "./syntaxes/org.tmLanguage.json"
+			},
+			{
+				"language": "calendar",
+				"scopeName": "source.calendar",
+				"path": "./syntaxes/calendar.tmLanguage.json"
 			}
 		],
 		"commands": [
@@ -82,6 +96,48 @@
 				"command": "org-code.rotate.prev.state",
 				"key": "shift+left",
 				"when": "editorTextFocus && editorLangId == 'org'"
+			},
+			{
+				"command": "org-code.open.calendar",
+				"args": "SCHEDULED",
+				"key": "ctrl+c ctrl+s",
+				"when": "editorTextFocus && editorLangId == 'org'"
+			},
+			{
+				"command": "org-code.open.calendar",
+				"args": "DEADLINE",
+				"key": "ctrl+c ctrl+d",
+				"when": "editorTextFocus && editorLangId == 'org'"
+			},
+			{
+				"command": "workbench.action.closeActiveEditor",
+				"key": "escape",
+				"when": "editorTextFocus && editorLangId == 'calendar'"
+			},
+			{
+				"command": "org-code.go.prev.date",
+				"key": "left",
+				"when": "editorTextFocus && editorLangId == 'calendar'"
+			},
+			{
+				"command": "org-code.go.next.date",
+				"key": "right",
+				"when": "editorTextFocus && editorLangId == 'calendar'"
+			},
+			{
+				"command": "org-code.go.prev.week",
+				"key": "up",
+				"when": "editorTextFocus && editorLangId == 'calendar'"
+			},
+			{
+				"command": "org-code.go.next.week",
+				"key": "down",
+				"when": "editorTextFocus && editorLangId == 'calendar'"
+			},
+			{
+				"command": "org-code.set.date",
+				"key": "enter",
+				"when": "editorTextFocus && editorLangId == 'calendar'"
 			}
 		],
 		"configuration": [
@@ -134,6 +190,11 @@
 						"type": "boolean",
 						"default": true,
 						"description": "Folding based on head"
+					},
+					"org-code.number.of.month": {
+						"type": "number",
+						"default": 3,
+						"description": "Number of month in date selector"
 					}
 				}
 			}

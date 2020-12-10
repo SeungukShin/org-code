@@ -1,0 +1,21 @@
+{
+	"name": "calendar",
+	"scopeName": "source.calendar",
+	"patterns": [
+		{
+			"comment": "month",
+			"name": "constant.numeric",
+			"match": "\\b(January|February|March|April|May|June|July|August|September|October|November|December)\\s+[\\d]{1,4}\\b"
+		},
+		{
+			"comment": "weekend",
+			"name": "invalid.illegal",
+			"match": "\\b(Su|Sa)\\b"
+		},
+		{
+			"comment": "weekday",
+			"name": "keyword.control",
+			"match": "\\b(Mo|Tu|We|Th|Fr)\\b"
+		}
+	]
+}
