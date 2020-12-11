@@ -124,7 +124,7 @@ export class Calendar implements vscode.TextDocumentContentProvider {
 			}
 		}
 		while (count % 7 != 0) {
-			text += '   '
+			text += '   ';
 			count++;
 		}
 		if (text.length > 0) {

@@ -141,7 +141,7 @@ export class Org implements vscode.Disposable {
 	}
 
 	async setDate(): Promise<void> {
-		const date = this.calendar.getDate()
+		const date = this.calendar.getDate();
 		await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 		if (!this.calendarEditor || !this.calendarHead || this.calendarMode == CalendarMode.none) {
 			return Promise.resolve();
