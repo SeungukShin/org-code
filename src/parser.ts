@@ -9,8 +9,10 @@ export class Parser implements vscode.Disposable {
 	private headRegex: RegExp;
 	private countRegex: RegExp;
 	private linkRegex: RegExp;
+	private srcRegex: RegExp;
 	private first: Head | undefined;
 	private links: vscode.Range[];
+	private sources: vscode.Range[];
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
@@ -19,8 +21,10 @@ export class Parser implements vscode.Disposable {
 		this.headRegex = new RegExp('\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$', 'g');
 		this.countRegex = new RegExp('\\[\\d*\\/\\d*\\]', 'g');
 		this.linkRegex = new RegExp('\\[\\[[^\\n]+\\]\\]', 'g');
+		this.srcRegex = new RegExp('#\\+(begin|end)_src', 'gi');
 		this.first = undefined;
 		this.links = [];
+		this.sources = [];
 	}
 
 	dispose(): void {
@@ -33,6 +37,7 @@ export class Parser implements vscode.Disposable {
 		}
 		this.first = undefined;
 		this.links = [];
+		this.sources = [];
 		const text = editor.document.getText();
 		let match;
 		const parent: Head[] = [];
@@ -121,6 +126,17 @@ export class Parser implements vscode.Disposable {
 			const end = editor.document.positionAt(match.index + match[0].length);
 			this.links.push(new vscode.Range(start, end));
 		}
+		let beginSrc: vscode.Position | undefined = undefined;
+		while (match = this.srcRegex.exec(text)) {
+			const start = editor.document.positionAt(match.index);
+			const end = editor.document.positionAt(match.index + match[0].length);
+			if (match[0].toLowerCase() === '#+begin_src') {
+				beginSrc = editor.document.positionAt(match.index);
+			} else if (beginSrc) {
+				this.sources.push(new vscode.Range(beginSrc, editor.document.positionAt(match.index)));
+				beginSrc = undefined;
+			}
+		}
 		return Promise.resolve();
 	}
 
@@ -142,5 +158,9 @@ export class Parser implements vscode.Disposable {
 
 	getLinks(): vscode.Range[] {
 		return this.links;
+	}
+
+	getSources(): vscode.Range[] {
+		return this.sources;
 	}
 }

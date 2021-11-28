@@ -1,12 +1,16 @@
 import * as vscode from 'vscode';
 import { Config } from './config';
+import { Head } from './head';
+import { Parser } from './parser';
 
 export class Folding implements vscode.FoldingRangeProvider {
 	private config: Config;
+	private parser: Parser;
 	private level: number;
 
-	constructor(context: vscode.ExtensionContext) {
+	constructor(context: vscode.ExtensionContext, parser: Parser) {
 		this.config = Config.getInstance();
+		this.parser = parser;
 		this.level = this.config.get('headLevel');
 	}
 
@@ -19,39 +23,38 @@ export class Folding implements vscode.FoldingRangeProvider {
 		if (editor.document !== document) {
 			return range;
 		}
-		const text = document.getText();
 
+		let h: Head | undefined = this.parser.getHead();
 		let i;
+		let lastLine: number = -1;
 		const preLine: number[] = [];
 		for (i = 0; i < this.level; i++) {
 			preLine[i] = -1;
 		}
-		const pattern = '\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$';
-		const regex = new RegExp(pattern, 'g');
-		let match;
-		while (match = regex.exec(text)) {
-			const level = match[0].trim().startsWith('*') ? match[0].trim().length : 0;
-			const pos = editor.document.positionAt(match.index);
-			if (level == 0) {
-				// end of file
-				let lastLine = -1;
-				for (i = 0; i < this.level; i++) {
-					if (preLine[i] > lastLine) {
-						lastLine = preLine[i];
-					}
-					if (lastLine >= 0) {
-						range.push(new vscode.FoldingRange(lastLine, pos.line));
-					}
-				}
-			} else {
-				for (i = level - 1; i < this.level; i++) {
-					if (preLine[i] >= 0) {
-						range.push(new vscode.FoldingRange(preLine[i], pos.line));
-					}
+		while (h) {
+			const level = h.level;
+			const headLine = h.rangeHead.start.line;
+			lastLine = (h.rangeBody) ? h.rangeBody.end.line : h.rangeHead.end.line;
+			for (i = level - 1; i < this.level; i++) {
+				if (preLine[i] >= 0) {
+					range.push(new vscode.FoldingRange(preLine[i], headLine - 1));
 					preLine[i] = -1;
 				}
-				preLine[level - 1] = pos.line + 1;
 			}
+			preLine[level - 1] = headLine;
+			h = h.nextHead;
+		}
+		if (lastLine >= 0) {
+			for (i = 0; i < this.level; i++) {
+				if (preLine[i] >= 0) {
+					range.push(new vscode.FoldingRange(preLine[i], lastLine));
+					preLine[i] = -1;
+				}
+			}
+		}
+
+		for (const src of this.parser.getSources()) {
+			range.push(new vscode.FoldingRange(src.start.line, src.end.line));
 		}
 
 		return range;

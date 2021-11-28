@@ -36,7 +36,7 @@ export class Org implements vscode.Disposable {
 		this.log = Log.getInstance();
 		this.parser = new Parser(context);
 		this.decoration = new Decoration(this.parser);
-		this.folding = new Folding(context);
+		this.folding = new Folding(context, this.parser);
 		this.calendar = new Calendar(context);
 		this.calendarMode = CalendarMode.none;
 		this.level = new Level(this.parser);
@@ -65,6 +65,11 @@ export class Org implements vscode.Disposable {
 
 		// open new document
 		vscode.window.onDidChangeActiveTextEditor(editor => {
+			if (editor && editor.document.languageId === 'org') {
+				this.update(this);
+			}
+		}, null, context.subscriptions);
+		/*vscode.window.onDidChangeActiveTextEditor(editor => {
 			if (editor) {
 				if (editor.document.languageId === 'org') {
 					this.startUpdate();
@@ -72,10 +77,17 @@ export class Org implements vscode.Disposable {
 					this.stopUpdate();
 				}
 			}
-		}, null, context.subscriptions);
+		}, null, context.subscriptions);*/
 
 		// modify current document
 		vscode.workspace.onDidChangeTextDocument(event => {
+			const editor = vscode.window.activeTextEditor;
+			if (editor && event.document === editor.document &&
+				editor.document.languageId === 'org') {
+					this.update(this);
+			}
+		}, null, context.subscriptions);
+		/*vscode.workspace.onDidChangeTextDocument(event => {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && event.document === editor.document) {
 				if (editor.document.languageId === 'org') {
@@ -84,17 +96,23 @@ export class Org implements vscode.Disposable {
 					this.stopUpdate();
 				}
 			}
-		}, null, context.subscriptions);
+		}, null, context.subscriptions);*/
 
 		// current document
 		if (vscode.window.activeTextEditor) {
+			const editor = vscode.window.activeTextEditor;
+			if (editor.document.languageId === 'org') {
+				this.update(this);
+			}
+		}
+		/*if (vscode.window.activeTextEditor) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor.document.languageId === 'org') {
 				this.startUpdate();
 			} else {
 				this.stopUpdate();
 			}
-		}
+		}*/
 	}
 
 	dispose(): void {
