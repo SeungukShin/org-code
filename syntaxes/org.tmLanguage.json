@@ -5,7 +5,7 @@
 		{
 			"comment": "org metadata",
 			"name": "keyword.control",
-			"match": "^#+\\S+:"
+			"match": "^#+\\S+:?"
 		},
 		{
 			"comment": "org level 1",
@@ -70,6 +70,7 @@
 				{ "include": "#done" },
 				{ "include": "#count" },
 				{ "include": "#tag" },
+				{ "include": "#link"},
 				{ "include": "#common" }
 			]
 		},
@@ -101,6 +102,10 @@
 		"tag": {
 			"name": "markup.bold",
 			"match": "(:)\\b(\\S+)\\b(:)"
+		},
+		"link": {
+			"name": "markup.underline",
+			"match": "\\[\\[[^\\n]+\\]\\]"
 		},
 		"time-prop": {
 			"name": "keyword.control",

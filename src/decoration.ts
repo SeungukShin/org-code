@@ -12,6 +12,9 @@ export class Decoration implements vscode.Disposable {
 	private doneState: string;
 	private todoType: vscode.TextEditorDecorationType;
 	private doneType: vscode.TextEditorDecorationType;
+	private descRegex: RegExp;
+	private linkType: vscode.TextEditorDecorationType;
+	private hideType: vscode.TextEditorDecorationType;
 
 	constructor(parser: Parser) {
 		this.config = Config.getInstance();
@@ -65,6 +68,27 @@ export class Decoration implements vscode.Disposable {
 			},
 			'dark': {
 				'color': 'rgba(0, 255, 0, 1.0)'
+			}
+		});
+
+		// links
+		this.descRegex = new RegExp('\\]\\[', 'g');
+		this.linkType = vscode.window.createTextEditorDecorationType({
+			'light': {
+				'color': 'rgba(0, 128, 255, 1.0)'
+			},
+			'dark': {
+				'color': 'rgba(0, 128, 255, 1.0)'
+			}
+		});
+		this.hideType = vscode.window.createTextEditorDecorationType({
+			'light': {
+				'color': 'rgba(0, 128, 255, 0.0)',
+				'letterSpacing': '-256px'
+			},
+			'dark': {
+				'color': 'rgba(0, 128, 255, 0.0)',
+				'letterSpacing': '-256px'
 			}
 		});
 	}
@@ -129,11 +153,28 @@ export class Decoration implements vscode.Disposable {
 
 			h = h.nextHead;
 		}
+
+		// links
+		const link: vscode.Range[] = [];
+		const hide: vscode.Range[] = [];
+		for (let range of this.parser.getLinks()) {
+			const start = range.start;
+			const end = range.end;
+			const text = editor.document.getText(range);
+			const match = this.descRegex.exec(text);
+			const offset = (match) ? match.index + 2 : 2;
+			hide.push(new vscode.Range(start.line, start.character, start.line, start.character + offset))
+			hide.push(new vscode.Range(end.line, end.character - 2, end.line, end.character));
+			link.push(new vscode.Range(start.line, start.character + offset, end.line, end.character - 2));
+		}
+
 		for (i = 0; i < this.level; i++) {
 			editor.setDecorations(this.headType[i], head[i]);
 			editor.setDecorations(this.bodyType[i], body[i]);
 		}
 		editor.setDecorations(this.todoType, todo);
 		editor.setDecorations(this.doneType, done);
+		editor.setDecorations(this.linkType, link);
+		editor.setDecorations(this.hideType, hide);
 	}
 }

@@ -8,7 +8,9 @@ export class Parser implements vscode.Disposable {
 	private state: string[];
 	private headRegex: RegExp;
 	private countRegex: RegExp;
+	private linkRegex: RegExp;
 	private first: Head | undefined;
+	private links: vscode.Range[];
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
@@ -16,7 +18,9 @@ export class Parser implements vscode.Disposable {
 		this.state = (this.config.get('todoState') + ' ' + this.config.get('doneState')).split(' ');
 		this.headRegex = new RegExp('\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$', 'g');
 		this.countRegex = new RegExp('\\[\\d*\\/\\d*\\]', 'g');
+		this.linkRegex = new RegExp('\\[\\[[^\\n]+\\]\\]', 'g');
 		this.first = undefined;
+		this.links = [];
 	}
 
 	dispose(): void {
@@ -28,6 +32,7 @@ export class Parser implements vscode.Disposable {
 			return Promise.resolve();
 		}
 		this.first = undefined;
+		this.links = [];
 		const text = editor.document.getText();
 		let match;
 		const parent: Head[] = [];
@@ -111,6 +116,11 @@ export class Parser implements vscode.Disposable {
 				prevHead = head;
 			}
 		}
+		while (match = this.linkRegex.exec(text)) {
+			const start = editor.document.positionAt(match.index);
+			const end = editor.document.positionAt(match.index + match[0].length);
+			this.links.push(new vscode.Range(start, end));
+		}
 		return Promise.resolve();
 	}
 
@@ -128,5 +138,9 @@ export class Parser implements vscode.Disposable {
 			h = h.nextHead;
 		}
 		return h;
+	}
+
+	getLinks(): vscode.Range[] {
+		return this.links;
 	}
 }

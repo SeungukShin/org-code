@@ -29,3 +29,18 @@ Integrates [Org](https://orgmode.org) into VS Code.
 | Update Delay | Update UI delay for indent and fold in ms      | 10        |
 | Indent       | Indent heads                                   | true      |
 | Fold         | Fold by heads                                  | true      |
+
+## Fetures
+- [x] Highlight for Org syntax
+- [x] Hide leading stars
+- [x] Start up indented
+- [x] Promotion or demotion for a haed or a tree of head
+- [x] Set a state
+- [x] Calculate the state of children
+- [x] Configure for a state
+- [x] Insert schedule or deadline date
+- [x] Folding source block
+- [ ] Handling a link
+- [ ] Start up folded
+- [ ] Inline image
+- [ ] Highlight for source syntax
