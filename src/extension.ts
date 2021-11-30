@@ -30,6 +30,7 @@ export class Org implements vscode.Disposable {
 	private calendarHead: Head | undefined;
 	private level: Level;
 	private state: State;
+	private foldAllStatus: boolean = false;
 
 	constructor(context: vscode.ExtensionContext) {
 		this.config = Config.getInstance();
@@ -62,6 +63,8 @@ export class Org implements vscode.Disposable {
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.go.prev.week', () => this.calendar.goDate(-7)));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.go.next.week', () => this.calendar.goDate(7)));
 		context.subscriptions.push(vscode.commands.registerCommand('org-code.set.date', async () => this.setDate()));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.toggle.fold', async () => this.toggleFold()));
+		context.subscriptions.push(vscode.commands.registerCommand('org-code.toggle.fold.all', async () => this.toggleFoldAll()));
 
 		// open new document
 		vscode.window.onDidChangeActiveTextEditor(editor => {
@@ -69,15 +72,6 @@ export class Org implements vscode.Disposable {
 				this.update(this);
 			}
 		}, null, context.subscriptions);
-		/*vscode.window.onDidChangeActiveTextEditor(editor => {
-			if (editor) {
-				if (editor.document.languageId === 'org') {
-					this.startUpdate();
-				} else {
-					this.stopUpdate();
-				}
-			}
-		}, null, context.subscriptions);*/
 
 		// modify current document
 		vscode.workspace.onDidChangeTextDocument(event => {
@@ -87,16 +81,6 @@ export class Org implements vscode.Disposable {
 					this.update(this);
 			}
 		}, null, context.subscriptions);
-		/*vscode.workspace.onDidChangeTextDocument(event => {
-			const editor = vscode.window.activeTextEditor;
-			if (editor && event.document === editor.document) {
-				if (editor.document.languageId === 'org') {
-					this.startUpdate();
-				} else {
-					this.stopUpdate();
-				}
-			}
-		}, null, context.subscriptions);*/
 
 		// current document
 		if (vscode.window.activeTextEditor) {
@@ -105,14 +89,21 @@ export class Org implements vscode.Disposable {
 				this.update(this);
 			}
 		}
-		/*if (vscode.window.activeTextEditor) {
+	
+		// cursor
+		vscode.window.onDidChangeTextEditorSelection(event => {
 			const editor = vscode.window.activeTextEditor;
-			if (editor.document.languageId === 'org') {
-				this.startUpdate();
-			} else {
-				this.stopUpdate();
+			if (editor && event.textEditor.document === editor.document &&
+				editor.document.languageId === 'org') {
+					const line = event.selections[0].active.line;
+					const head = this.parser.getHead(line);
+					if (line === head?.rangeHead.start.line) {
+						vscode.commands.executeCommand('setContext', 'orgMode', 'head');
+					} else {
+						vscode.commands.executeCommand('setContext', 'orgMode', 'body');
+					}
 			}
-		}*/
+		}, null, context.subscriptions);
 	}
 
 	dispose(): void {
@@ -211,6 +202,22 @@ export class Org implements vscode.Disposable {
 		await editor.edit((editBuilder) => {
 			editBuilder.insert(new vscode.Position(line, 0), text);
 		});
+		return Promise.resolve();
+	}
+
+	async toggleFold(): Promise<void> {
+		await vscode.commands.executeCommand('editor.toggleFold');
+		return Promise.resolve();
+	}
+
+	async toggleFoldAll(): Promise<void> {
+		if (this.foldAllStatus) {
+			await vscode.commands.executeCommand('editor.unfoldAll');
+			this.foldAllStatus = false;
+		} else {
+			await vscode.commands.executeCommand('editor.foldAll');
+			this.foldAllStatus = true;
+		}
 		return Promise.resolve();
 	}
 }

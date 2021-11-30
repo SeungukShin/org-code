@@ -40,7 +40,7 @@ Integrates [Org](https://orgmode.org) into VS Code.
 - [x] Configure for a state
 - [x] Insert schedule or deadline date
 - [x] Folding source block
-- [ ] Handling a link
+- [x] Handling a link
 - [ ] Start up folded
 - [ ] Inline image
 - [ ] Highlight for source syntax

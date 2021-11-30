@@ -98,6 +98,16 @@
 				"when": "editorTextFocus && editorLangId == 'org'"
 			},
 			{
+				"command": "org-code.toggle.fold",
+				"key": "tab",
+				"when": "editorTextFocus && editorLangId == 'org' && orgMode == 'head'"
+			},
+			{
+				"command": "org-code.toggle.fold.all",
+				"key": "shift+tab",
+				"when": "editorTextFocus && editorLangId == 'org'"
+			},
+			{
 				"command": "org-code.open.calendar",
 				"args": "SCHEDULED",
 				"key": "ctrl+c ctrl+s",
