@@ -18,7 +18,7 @@ export class Parser implements vscode.Disposable {
 		this.config = Config.getInstance();
 		this.level = this.config.get('headLevel');
 		this.state = (this.config.get('todoState') + ' ' + this.config.get('doneState')).split(' ');
-		this.headRegex = new RegExp('\\n[*]{1,' + this.level.toString() + '}\\s+|[\\s\\S]$', 'g');
+		this.headRegex = new RegExp('^[*]{1,' + this.level.toString() + '}\\s+', 'gm');
 		this.countRegex = new RegExp('\\[\\d*\\/\\d*\\]', 'g');
 		this.linkRegex = new RegExp('\\[\\[[^\\n]+\\]\\]', 'g');
 		this.srcRegex = new RegExp('#\\+(begin|end)_src', 'gi');
@@ -45,80 +45,79 @@ export class Parser implements vscode.Disposable {
 		while (match = this.headRegex.exec(text)) {
 			const level = match[0].trim().startsWith('*') ? match[0].trim().length : 0;
 			const pos = editor.document.positionAt(match.index);
-			if (level == 0) {
-				// end of file
-				if (prevHead) {
-					const prevLine = prevHead.rangeHead.start.line;
-					if (prevLine >= 0 && pos.line > prevLine) {
-						const range = new vscode.Range(prevLine + 1, 0, pos.line, 0);
-						prevHead.rangeBody = range;
-					}
+
+			// head
+			const line = editor.document.lineAt(pos.line);
+			const head = new Head(level, line.range);
+			if (!this.first) {
+				this.first = head;
+			}
+
+			// state
+			const lineArray = line.text.split(/\s+/);
+			if ((lineArray.length > 2) && this.state.includes(lineArray[1])) {
+				head.state = lineArray[1];
+				head.stateColumn = line.text.indexOf(head.state);
+			}
+
+			// count
+			const countMatch = this.countRegex.exec(line.text);
+			if (countMatch) {
+				head.count = countMatch[0];
+				head.countColumn = countMatch.index;
+			}
+
+			// schedule and deadline
+			if (editor.document.lineCount > pos.line + 1) {
+				const nextLine = editor.document.lineAt(pos.line + 1);
+				head.scheduleColumn = nextLine.text.indexOf('SCHEDULED:');
+				if (head.scheduleColumn >= 0) {
+					const end = nextLine.text.indexOf('>', head.scheduleColumn);
+					head.schedule = nextLine.text.slice(head.scheduleColumn, end + 1);
 				}
+				head.deadlineColumn = nextLine.text.indexOf('DEADLINE:');
+				if (head.deadlineColumn >= 0) {
+					const end = nextLine.text.indexOf('>', head.deadlineColumn);
+					head.deadline = nextLine.text.slice(head.deadlineColumn, end + 1);
+				}
+			}
+
+			// body
+			if (prevHead) {
+				prevHead.nextHead = head;
+				const prevLine = prevHead.rangeHead.start.line;
+				if (prevLine >= 0 && pos.line - 1 > prevLine) {
+					const range = new vscode.Range(prevLine + 1, 0, pos.line - 1, 0);
+					prevHead.rangeBody = range;
+				}
+			}
+			head.prevHead = prevHead;
+
+			// parent
+			let p = parent.pop();
+			if (!p) {
+				parent.push(head);
 			} else {
-				// head
-				const line = editor.document.lineAt(pos.line + 1);
-				const head = new Head(level, line.range);
-				if (!this.first) {
-					this.first = head;
+				while (p && p.level >= head.level) {
+					p = parent.pop();
 				}
-
-				// state
-				const lineArray = line.text.split(/\s+/);
-				if ((lineArray.length > 2) && this.state.includes(lineArray[1])) {
-					head.state = lineArray[1];
-					head.stateColumn = line.text.indexOf(head.state);
+				if (p) {
+					p.children.push(head);
+					head.parent = p;
+					parent.push(p);
 				}
+				parent.push(head);
+			}
 
-				// count
-				const countMatch = this.countRegex.exec(line.text);
-				if (countMatch) {
-					head.count = countMatch[0];
-					head.countColumn = countMatch.index;
-				}
-
-				// schedule and deadline
-				if (editor.document.lineCount > pos.line + 2) {
-					const nextLine = editor.document.lineAt(pos.line + 2);
-					head.scheduleColumn = nextLine.text.indexOf('SCHEDULED:');
-					if (head.scheduleColumn >= 0) {
-						const end = nextLine.text.indexOf('>', head.scheduleColumn);
-						head.schedule = nextLine.text.slice(head.scheduleColumn, end + 1);
-					}
-					head.deadlineColumn = nextLine.text.indexOf('DEADLINE:');
-					if (head.deadlineColumn >= 0) {
-						const end = nextLine.text.indexOf('>', head.deadlineColumn);
-						head.deadline = nextLine.text.slice(head.deadlineColumn, end + 1);
-					}
-				}
-
-				// body
-				if (prevHead) {
-					prevHead.nextHead = head;
-					const prevLine = prevHead.rangeHead.start.line;
-					if (prevLine >= 0 && pos.line > prevLine) {
-						const range = new vscode.Range(prevLine + 1, 0, pos.line, 0);
-						prevHead.rangeBody = range;
-					}
-				}
-				head.prevHead = prevHead;
-
-				// parent
-				let p = parent.pop();
-				if (!p) {
-					parent.push(head);
-				} else {
-					while (p && p.level >= head.level) {
-						p = parent.pop();
-					}
-					if (p) {
-						p.children.push(head);
-						head.parent = p;
-						parent.push(p);
-					}
-					parent.push(head);
-				}
-
-				prevHead = head;
+			prevHead = head;
+		}
+		// end of file
+		if (prevHead) {
+			const prevLine = prevHead.rangeHead.start.line;
+			const lastLine = editor.document.lineCount - 1;
+			if (prevLine >= 0 && lastLine > prevLine) {
+				const range = new vscode.Range(prevLine + 1, 0, lastLine, 0);
+				prevHead.rangeBody = range;
 			}
 		}
 		while (match = this.linkRegex.exec(text)) {
